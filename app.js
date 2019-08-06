@@ -3,7 +3,10 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
-
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
+const User = require("./models/user");
+const session = require("express-session");
 const indexRouter = require("./routes/index");
 
 const postsRouter = require("./routes/posts");
@@ -20,7 +23,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+//configure session before passport
+app.use(
+  session({
+    secret: "hang ten dude",
+    resave: false,
+    saveUnitiliazed: true
+  })
+);
+//set up passport and sessions
+// CHANGE: USE "createStrategy" INSTEAD OF "authenticate"
+passport.use(User.createStrategy());
 
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+//mount routes
 app.use("/", indexRouter);
 
 app.use("/posts", postsRouter);
